@@ -110,7 +110,9 @@
 
 ### 8. 类名、名空间、Assembly修改
 
-&emsp;&emsp;有时开发者希望迁移代码，例如从Assets Package化，可能会修改`ShaderVariantsStripperCondition`及实现类的类名、修改namespace、改变Assembly。由于序列化接口实现对象需要用到`SerializeReference`，当修改这些后，已经编辑好的Config文件可能无法匹配前后的类型（至少Unity2019-2021都是如此），因此工具提供配置导出为Json功能：
+&emsp;&emsp;有时开发者希望迁移代码，例如从Assets Package化，可能会修改`ShaderVariantsStripperCondition`及实现类的类名、修改namespace、改变Assembly。由于序列化接口实现对象需要用到`SerializeReference`，当修改这些后，已经编辑好的Config文件可能无法匹配前后的类型（至少Unity2019-2021都是如此），如果在编辑器Project窗口点击Config，甚至会导致编辑器卡死。
+
+&emsp;&emsp;如果你的项目资产是文本类型，可以直接用文本方式编辑资产中记录的类名、namespace、Assembly，如果项目资产是二进制，工具提供配置导出、导入为Json功能：
 
 ![](Images/11.%E8%AF%BB%E5%86%99Json%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%87%E4%BB%B6.png)
 

@@ -45,7 +45,8 @@ namespace Soco.ShaderVariantsStripper
     
             for (var i = 0; i != Mathf.Min(_keys.Count, _values.Count); i++)
             {
-                Add(_keys[i], _values[i]);
+                if(_keys[i] != null)
+                    Add(_keys[i], _values[i]);
             }
         }
     }

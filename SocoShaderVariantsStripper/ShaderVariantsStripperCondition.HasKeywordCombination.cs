@@ -37,7 +37,7 @@ namespace Soco.ShaderVariantsStripper
         
         public bool EqualTo(ShaderVariantsStripperCondition other)
         {
-            if (other.GetType() != typeof(ShaderVariantsStripperConditionAExistAndBNotExist))
+            if (other.GetType() != typeof(ShaderVariantsStripperConditionHasKeywordCombination))
             {
                 return false;
             }

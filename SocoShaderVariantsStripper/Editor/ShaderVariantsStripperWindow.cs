@@ -565,7 +565,7 @@ namespace Soco.ShaderVariantsStripper
 
                             foreach (var conditionPair_fromConfig in mStripCheckConditionList)
                             {
-                                if (GUILayout.Button(conditionPair_fromConfig.config.name + (strip ? " 剔除" : " 保留") + $" 优先级:{conditionPair_fromConfig.conditionPair.priority} 条件:{conditionPair_fromConfig.conditionPair.condition.Overview()}"))
+                                if (GUILayout.Button(conditionPair_fromConfig.config.name + (conditionPair_fromConfig.conditionPair.strip ? " 剔除" : " 保留") + $" 优先级:{conditionPair_fromConfig.conditionPair.priority} 条件:{conditionPair_fromConfig.conditionPair.condition.Overview()}"))
                                 {
                                     Selection.activeObject = conditionPair_fromConfig.config;
                                     EditorGUIUtility.PingObject(conditionPair_fromConfig.config);

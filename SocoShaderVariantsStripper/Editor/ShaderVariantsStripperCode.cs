@@ -25,6 +25,11 @@ namespace Soco.ShaderVariantsStripper
                         AssetDatabase.GUIDToAssetPath(guid)))
                 .ToArray();
         }
+
+        public static void ClearConfigs()
+        {
+            sConfigs = null;
+        }
         
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
@@ -36,9 +41,6 @@ namespace Soco.ShaderVariantsStripper
             
             for (int i = data.Count - 1; i >= 0 ; --i)
             {
-                //int maxPriority = -1;
-                //bool strip = false;
-                
                 mConditionList.Clear();
 
                 StripVariant(shader, snippet, data[i], sConfigs, mConditionList);
@@ -110,11 +112,15 @@ namespace Soco.ShaderVariantsStripper
                     {
                         if (pair.condition.Completion(shader, variantData))
                         {
-                            //如果有相同的条件，且优先级更高
-                            if (FindConditionEqual(pair, out int findIndex) != -1 &&
-                                pair.priority > conditionList[findIndex].conditionPair.priority)
-                                conditionList[findIndex] = (pair, config);
-                            else
+                            //如果有相同的条件，
+                            if (FindConditionEqual(pair, out int findIndex) != -1)
+                            {
+                                //且优先级更高
+                                if(pair.priority > conditionList[findIndex].conditionPair.priority)
+                                    conditionList[findIndex] = (pair, config);
+                                //优先级更低则直接丢弃
+                            }
+                            else//否则加入列表
                                 conditionList.Add((pair, config));
                         }
                     }
@@ -126,10 +132,11 @@ namespace Soco.ShaderVariantsStripper
                     {
                         if (pair.condition.Completion(shader, variantData))
                         {
-                            //如果有相同的条件，且优先级更高
-                            if (FindConditionEqual(pair, out int findIndex) != -1 &&
-                                pair.priority > conditionList[findIndex].conditionPair.priority)
-                                conditionList[findIndex] = (pair, config);
+                            if (FindConditionEqual(pair, out int findIndex) != -1)
+                            {
+                                if (pair.priority > conditionList[findIndex].conditionPair.priority)
+                                    conditionList[findIndex] = (pair, config);
+                            }
                             else
                                 conditionList.Add((pair, config));
                         }

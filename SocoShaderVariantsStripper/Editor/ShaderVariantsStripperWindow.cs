@@ -537,6 +537,10 @@ namespace Soco.ShaderVariantsStripper
                                         AssetDatabase.GUIDToAssetPath(guid)))
                                 .ToArray();
                             ShaderVariantsStripperCode.StripVariant(mStripCheckShader, mStripCheckData, allConfigs, mStripCheckConditionList);
+                            
+                            bool strip = mStripCheckConditionList.Any(conditionPair_fromConfig =>
+                                conditionPair_fromConfig.conditionPair.strip);
+                            ShowNotification(new GUIContent("检测结果为：" + (strip ? "剔除" : "保留")));
                             mStripCheckConditionListScrollViewPos = Vector2.zero;
                         }
 
@@ -548,15 +552,8 @@ namespace Soco.ShaderVariantsStripper
 
                         if (mStripCheckConditionList.Count != 0)
                         {
-                            bool strip = false;
-                            foreach (var conditionPair_fromConfig in mStripCheckConditionList)
-                            {
-                                if (conditionPair_fromConfig.conditionPair.strip)
-                                {
-                                    strip = true;
-                                    break;
-                                }
-                            }
+                            bool strip = mStripCheckConditionList.Any(conditionPair_fromConfig =>
+                                conditionPair_fromConfig.conditionPair.strip);
                             
                             EditorGUILayout.LabelField("检测结果为：" + (strip ? "剔除" : "保留"));
                             
@@ -565,7 +562,7 @@ namespace Soco.ShaderVariantsStripper
 
                             foreach (var conditionPair_fromConfig in mStripCheckConditionList)
                             {
-                                if (GUILayout.Button(conditionPair_fromConfig.config.name + (conditionPair_fromConfig.conditionPair.strip ? " 剔除" : " 保留") + $" 优先级:{conditionPair_fromConfig.conditionPair.priority} 条件:{conditionPair_fromConfig.conditionPair.condition.Overview()}"))
+                                if (GUILayout.Button(conditionPair_fromConfig.config.name + (strip ? " 剔除" : " 保留") + $" 优先级:{conditionPair_fromConfig.conditionPair.priority} 条件:{conditionPair_fromConfig.conditionPair.condition.Overview()}"))
                                 {
                                     Selection.activeObject = conditionPair_fromConfig.config;
                                     EditorGUIUtility.PingObject(conditionPair_fromConfig.config);

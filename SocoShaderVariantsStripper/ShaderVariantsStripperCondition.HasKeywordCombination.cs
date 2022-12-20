@@ -9,8 +9,13 @@ namespace Soco.ShaderVariantsStripper
     public class ShaderVariantsStripperConditionHasKeywordCombination
         : ShaderVariantsStripperCondition
     {
+        
+        public bool include = true;
         public List<string> keywords = new List<string>();
 
+        public bool constraintPassType = false;
+        public PassType passType = PassType.Normal;
+        
         private enum AccessLevel
         {
             Global,
@@ -23,6 +28,9 @@ namespace Soco.ShaderVariantsStripper
         
         public bool Completion(Shader shader, ShaderVariantsData data)
         {
+            if (constraintPassType && passType != data.passType)
+                return false;
+            
             int combinationValue = 0;
             foreach (string keyword in keywords)
             {
@@ -32,7 +40,8 @@ namespace Soco.ShaderVariantsStripper
                     : 0;
             }
 
-            return combinationValue == keywords.Count && keywords.Count != 0;
+            return keywords.Count == 0
+                   || (include ? combinationValue == keywords.Count : combinationValue != keywords.Count);
         }
         
         public bool EqualTo(ShaderVariantsStripperCondition other)
@@ -45,20 +54,24 @@ namespace Soco.ShaderVariantsStripper
             ShaderVariantsStripperConditionHasKeywordCombination otherCondition =
                 other as ShaderVariantsStripperConditionHasKeywordCombination;
 
-            if (this.keywords.Count != otherCondition.keywords.Count)
+            if (this.keywords.Count != otherCondition.keywords.Count
+                || this.constraintPassType != otherCondition.constraintPassType
+                || (this.constraintPassType && (this.passType != otherCondition.passType)))
             {
                 return false;
             }
             
             var set1 = new HashSet<string>(this.keywords);
             var set2 = new HashSet<string>(otherCondition.keywords);
-            return set1.SetEquals(set2);
+            return set1.SetEquals(set2) && this.include == otherCondition.include;
         }
 
 #if UNITY_EDITOR
         public string Overview()
         {
-            string s = "当包含Keyword<";
+            string passConstraint = constraintPassType ? $"({passType})" : "";
+            string c = include ? "" : "不";
+            string s = $"{passConstraint}当{c}包含Keyword<";
 
 
             for (int i = 0; i < keywords.Count; ++i)
@@ -84,6 +97,21 @@ namespace Soco.ShaderVariantsStripper
         public void OnGUI(ShaderVariantsStripperConditionOnGUIContext context)
         {
             EditorGUILayout.BeginVertical();
+
+            #region 包含选项
+            EditorGUILayout.BeginHorizontal();
+            
+            string c = include ? "" : "不";
+            if (GUILayout.Button($"当{c}包含"))
+            {
+                include = !include;
+            }
+            EditorGUILayout.LabelField("下列keyword或keyword组合时");
+            
+            EditorGUILayout.EndHorizontal();
+            #endregion
+            EditorGUILayout.Space(20);
+            
             if (context.shader != null)
             {
                 #region 选择添加
@@ -167,6 +195,17 @@ namespace Soco.ShaderVariantsStripper
             
             EditorGUILayout.EndHorizontal();
             #endregion
+            
+            #region 限定PassType
+            EditorGUILayout.BeginHorizontal();
+            constraintPassType = EditorGUILayout.ToggleLeft("条件限定指定PassType生效", constraintPassType);
+            if (constraintPassType)
+            {
+                passType = (PassType)EditorGUILayout.EnumPopup("PassType", passType);
+            }
+            EditorGUILayout.EndHorizontal();
+            #endregion
+            
             EditorGUILayout.EndVertical();
         }
 

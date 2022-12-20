@@ -16,7 +16,7 @@ namespace Soco.ShaderVariantsStripper
         private static ShaderVariantsStripperConfig[] sConfigs;
 
         private List<(ConditionPair conditionPair, ShaderVariantsStripperConfig config)> mConditionList = new List<(ConditionPair condition, ShaderVariantsStripperConfig config)>();
-        private static void LoadConfigs()
+        public static ShaderVariantsStripperConfig[] LoadConfigs()
         {
             string[] guids = AssetDatabase.FindAssets("t:ShaderVariantsStripperConfig", sAllPath);
 
@@ -24,6 +24,8 @@ namespace Soco.ShaderVariantsStripper
                     select AssetDatabase.LoadAssetAtPath<ShaderVariantsStripperConfig>(
                         AssetDatabase.GUIDToAssetPath(guid)))
                 .ToArray();
+
+            return sConfigs;
         }
 
         public static void ClearConfigs()
@@ -63,6 +65,17 @@ namespace Soco.ShaderVariantsStripper
                 Debug.Log($"Shader:{shader.name} Pass:{snippet.passType} 因剔除全部保留变体一个");
                 data.Add(workaround);
             }
+        }
+        
+        //对外开放接口，用于检查keyword是否需要被剔除
+        private static List<(ConditionPair conditionPair, ShaderVariantsStripperConfig config)> sConditionList = new List<(ConditionPair condition, ShaderVariantsStripperConfig config)>();
+        public static bool IsVariantStrip(Shader shader, ShaderSnippetData snippet, ShaderCompilerData data, ShaderVariantsStripperConfig[] configs)
+        {
+            sConditionList.Clear();
+            StripVariant(shader, snippet, data, sConfigs, sConditionList);
+
+            return sConditionList.Any(conditionPair_fromConfig =>
+                conditionPair_fromConfig.conditionPair.strip);
         }
         
         public static void StripVariant(Shader shader, ShaderSnippetData snippet, ShaderCompilerData data,

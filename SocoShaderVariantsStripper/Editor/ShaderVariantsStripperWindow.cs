@@ -44,7 +44,7 @@ namespace Soco.ShaderVariantsStripper
         private Vector2 mContentScrollViewPos = Vector2.zero;
         
         private int mSelectedCondition = 0;
-        private List<Type> mConditionTypes = new List<Type>();
+        private Type[] mConditionTypes = new Type[0];
         private string[] mConditionNames = null;
         
         //Shader View变量
@@ -233,6 +233,10 @@ namespace Soco.ShaderVariantsStripper
                         item.conditionPairs = new List<ConditionPair>();
                         item.applyGlobalConfig = true;
                         mConfig.mShaderConditions.Add(mWillInsertShader, item);
+                        if (mFilterShaderName != "" && mWillInsertShader.name.IndexOf(mFilterShaderName, StringComparison.OrdinalIgnoreCase) > 0)
+                        {
+                            mFilterShaders.Add(mWillInsertShader, item);
+                        }
                     }
 
                 }
@@ -250,7 +254,7 @@ namespace Soco.ShaderVariantsStripper
                     foreach (var kvp in mConfig.mShaderConditions)
                     {
                         Shader shader = kvp.Key;
-                        if (shader.name.Contains(mFilterShaderName))
+                        if (shader.name.IndexOf(mFilterShaderName, StringComparison.OrdinalIgnoreCase) > 0)
                         {
                             mFilterShaders.Add(kvp.Key, kvp.Value);
                         }
@@ -307,6 +311,7 @@ namespace Soco.ShaderVariantsStripper
 
                 if (willRemoveInDict != null)
                 {
+                    Undo.RegisterCompleteObjectUndo(mConfig, "ShaderVariantsStripper config delete shader");
                     mConfig.mShaderConditions.Remove(willRemoveInDict);
                     mFilterShaders.Remove(willRemoveInDict);
                 }
@@ -360,7 +365,7 @@ namespace Soco.ShaderVariantsStripper
                     mSelectedCondition = EditorGUILayout.Popup(mSelectedCondition, mConditionNames, GUILayout.MinWidth(rightWidth * 0.7f));
                     if (GUILayout.Button("添加", GUILayout.MinWidth(rightWidth * 0.3f)))
                     {
-                        if (mSelectedCondition >= mConditionTypes.Count)
+                        if (mSelectedCondition >= mConditionTypes.Length)
                         {
                             Debug.LogError("程序有改变，请重新打开窗口");
                             return;
@@ -424,7 +429,10 @@ namespace Soco.ShaderVariantsStripper
                         }
 
                         if (GUILayout.Button("删除", GUILayout.Width(50), GUILayout.Height(50)))
+                        {
+                            Undo.RegisterCompleteObjectUndo(mConfig, "ShaderVariantsStripper config delete condition");
                             conditionList.RemoveAt(i);
+                        }
 
                         EditorGUILayout.BeginVertical(GUILayout.Width(25), GUILayout.Height(50));
                         if (GUILayout.Button("↑", GUILayout.Width(25), GUILayout.Height(25)) && i != 0)
@@ -626,29 +634,12 @@ namespace Soco.ShaderVariantsStripper
 
         private void SetupConditionType()
         {
-            mConditionTypes.Clear();
-            List<string> conditionNames = new List<string>();
-            
-            Assembly ass = Assembly.GetAssembly(typeof(ShaderVariantsStripperCondition));
-            
-            foreach(Type type in ass.GetTypes())
-            {
-                if (type.IsInterface)
-                    continue;
+            mConditionTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(
+                assembly => assembly.GetTypes()).Where(
+                type => typeof(ShaderVariantsStripperCondition).IsAssignableFrom(type) && !type.IsAbstract
+            ).ToArray();
 
-                foreach (Type itf in type.GetInterfaces())
-                {
-                    if (itf == typeof(ShaderVariantsStripperCondition))
-                    {
-                        mConditionTypes.Add(type);
-                        conditionNames.Add((System.Activator.CreateInstance(type) as ShaderVariantsStripperCondition).GetName());
-                        break;
-                    }
-                }
-
-            }
-
-            mConditionNames = conditionNames.ToArray();
+            mConditionNames = mConditionTypes.Select(type => (System.Activator.CreateInstance(type) as ShaderVariantsStripperCondition).GetName()).ToArray();
         }
 
         public void Awake()

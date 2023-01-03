@@ -13,7 +13,7 @@ namespace Soco.ShaderVariantsStripper
             return data.passType == passType;
         }
 
-        public bool EqualTo(ShaderVariantsStripperCondition other)
+        public bool EqualTo(ShaderVariantsStripperCondition other, ShaderVariantsData variantData)
         {
             return other.GetType() == typeof(ShaderVariantsStripperConditionPassTypeIs) &&
                    (other as ShaderVariantsStripperConditionPassTypeIs).passType == this.passType;

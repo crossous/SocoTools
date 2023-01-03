@@ -91,7 +91,7 @@ namespace Soco.ShaderVariantsStripper
             {
                 for (int condList_i = 0; condList_i < conditionList.Count; ++condList_i)
                 {
-                    if (pair.condition.EqualTo(conditionList[condList_i].conditionPair.condition))
+                    if (pair.condition.EqualTo(conditionList[condList_i].conditionPair.condition, variantData))
                     {
                         index = condList_i;
                         return condList_i;

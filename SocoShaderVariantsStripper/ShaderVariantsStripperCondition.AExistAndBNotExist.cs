@@ -32,7 +32,7 @@ namespace Soco.ShaderVariantsStripper
             return valid && AExist && BNotExist;
         }
         
-        public bool EqualTo(ShaderVariantsStripperCondition other)
+        public bool EqualTo(ShaderVariantsStripperCondition other, ShaderVariantsData variantData)
         {
             return other.GetType() == typeof(ShaderVariantsStripperConditionAExistAndBNotExist) &&
                    (other as ShaderVariantsStripperConditionAExistAndBNotExist).keywordA == this.keywordA &&

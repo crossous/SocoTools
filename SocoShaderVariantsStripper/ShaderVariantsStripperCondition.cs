@@ -48,7 +48,7 @@ namespace Soco.ShaderVariantsStripper
     {
         bool Completion(Shader shader, ShaderVariantsData data);
 
-        bool EqualTo(ShaderVariantsStripperCondition other);
+        bool EqualTo(ShaderVariantsStripperCondition other, ShaderVariantsData variantData);
         
 #if UNITY_EDITOR
         string Overview();

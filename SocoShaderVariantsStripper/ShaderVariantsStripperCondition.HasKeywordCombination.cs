@@ -44,7 +44,7 @@ namespace Soco.ShaderVariantsStripper
                    || (include ? combinationValue == keywords.Count : combinationValue != keywords.Count);
         }
         
-        public bool EqualTo(ShaderVariantsStripperCondition other)
+        public bool EqualTo(ShaderVariantsStripperCondition other, ShaderVariantsData variantData)
         {
             if (other.GetType() != typeof(ShaderVariantsStripperConditionHasKeywordCombination))
             {
@@ -54,9 +54,25 @@ namespace Soco.ShaderVariantsStripper
             ShaderVariantsStripperConditionHasKeywordCombination otherCondition =
                 other as ShaderVariantsStripperConditionHasKeywordCombination;
 
-            if (this.keywords.Count != otherCondition.keywords.Count
-                || this.constraintPassType != otherCondition.constraintPassType
-                || (this.constraintPassType && (this.passType != otherCondition.passType)))
+            //两个条件都未指定Pass
+            bool nonConstraintPassType = this.constraintPassType == otherCondition.constraintPassType &&
+                                         !this.constraintPassType;
+            
+            //两个条件都指定Pass，且Pass相等
+            bool constraintPassTypeAndTypeEqual = this.constraintPassType == otherCondition.constraintPassType &&
+                                                  this.constraintPassType && this.passType == otherCondition.passType;
+            
+            //其中一个指定了Pass，另一个未指定，但当前环境下pass符合条件
+            PassType constraintPassType = this.constraintPassType ? this.passType : otherCondition.passType;
+            bool constraintPassTypeNotEqualButPassEqual =
+                this.constraintPassType != otherCondition.constraintPassType &&
+                constraintPassType == variantData.passType;
+            
+            //三个条件满足之一就算指定Pass的条件相等
+            bool passEqualCondtion = nonConstraintPassType || constraintPassTypeAndTypeEqual ||
+                                     constraintPassTypeNotEqualButPassEqual;
+            
+            if (this.keywords.Count != otherCondition.keywords.Count || !passEqualCondtion)
             {
                 return false;
             }

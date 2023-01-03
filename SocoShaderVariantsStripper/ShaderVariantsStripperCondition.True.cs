@@ -12,7 +12,7 @@ namespace Soco.ShaderVariantsStripper
             return true;
         }
 
-        public bool EqualTo(ShaderVariantsStripperCondition other)
+        public bool EqualTo(ShaderVariantsStripperCondition other, ShaderVariantsData variantData)
         {
             return true;
         }

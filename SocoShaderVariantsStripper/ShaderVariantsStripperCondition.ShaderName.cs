@@ -36,7 +36,7 @@ namespace Soco.ShaderVariantsStripper
             return false;
         }
 
-        public bool EqualTo(ShaderVariantsStripperCondition other)
+        public bool EqualTo(ShaderVariantsStripperCondition other, ShaderVariantsData variantData)
         {
             return other.GetType() == typeof(ShaderVariantsStripperConditionShaderName) &&
                    (other as ShaderVariantsStripperConditionShaderName).mode == this.mode &&

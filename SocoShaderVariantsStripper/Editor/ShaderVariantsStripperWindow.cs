@@ -642,10 +642,22 @@ namespace Soco.ShaderVariantsStripper
             mConditionNames = mConditionTypes.Select(type => (System.Activator.CreateInstance(type) as ShaderVariantsStripperCondition).GetName()).ToArray();
         }
 
+        private static void InitGetKeywordMethod()
+        {
+            if (sGetShaderGlobalKeywordsMethod == null)
+                sGetShaderGlobalKeywordsMethod = typeof(ShaderUtil).GetMethod("GetShaderGlobalKeywords",
+                    BindingFlags.NonPublic | BindingFlags.Static);
+
+            if (sGetShaderLocalKeywordsMethod == null)
+                sGetShaderLocalKeywordsMethod = typeof(ShaderUtil).GetMethod("GetShaderLocalKeywords",
+                    BindingFlags.NonPublic | BindingFlags.Static);
+        }
+        
         public void Awake()
         {
             SetupStyle();
             SetupConditionType();
+            InitGetKeywordMethod();
         }
 
         public void OnDisable()

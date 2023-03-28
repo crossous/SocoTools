@@ -121,3 +121,11 @@
 &emsp;&emsp;选择读取路径后，下方会显示当前读取路径，选择读取Json会将Json反序列化到当前Config中，这是覆盖保存，所以注意提前备份好Config。
 
 &emsp;&emsp;对于修改类名等情况，可以提前Json序列化好配置文件，Json中会保存`SerializeReference`对象的类型、名空间、Assembly，可以用修改Json文件中相关名称，然后修改Unity中类型名称，之后从Json文件中反序列化。
+
+### 9. 优化注意事项
+
+&emsp;&emsp;因为找不到Unity Build的事件函数，无法在Build之前只进行一次Config读取，因此每次进入`OnProcessShader`函数时，都会调用`LoadConfigs`，来保证功能不出错；这个方法的逻辑，是从硬盘中读取Config文件，消耗不大，但依旧会对打包时间造成不少影响。
+
+&emsp;&emsp;如果你们有Build Bundle相关代码，可以将`LoadConfigs`从`OnProcessShader`中注释掉，然后在Build Bundle前，在外部调用`ShaderVariantsStripperCode.LoadConfigs()`方法。
+
+&emsp;&emsp;需要注意的是，如果注释掉`LoadConfigs`，会导致工程用Unity默认的File>Build Settings>build不走这一套剔除程序，可以在`OnProcessShader`增加一些判断逻辑，比如`sConfigs`为空时LoadConfigs，这样直接Build不会实时更新config文件，但依旧可以正常走剔除。

@@ -23,11 +23,9 @@ namespace Soco.ShaderVariantsStripper
         {
             bool valid = keywordA != "" && keywordB != "";
             
-            bool AExist = data.shaderKeywordSet.IsEnabled(new ShaderKeyword(keywordA)) ||
-                          data.shaderKeywordSet.IsEnabled(new ShaderKeyword(shader, keywordA));
+            bool AExist = data.IsKeywordEnabled(keywordA, shader);
 
-            bool BNotExist = !data.shaderKeywordSet.IsEnabled(new ShaderKeyword(keywordB)) &&
-                              !data.shaderKeywordSet.IsEnabled(new ShaderKeyword(shader, keywordB));
+            bool BNotExist = !data.IsKeywordEnabled(keywordB, shader);
 
             return valid && AExist && BNotExist;
         }

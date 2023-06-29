@@ -460,7 +460,7 @@ namespace Soco.ShaderVariantsStripper
                     if (nextStripCheckShader != mStripCheckShader)
                     {
                         mStripCheckShader = nextStripCheckShader;
-                        mStripCheckData = new ShaderVariantsData();
+                        mStripCheckData = ShaderVariantsData.GetDefaultShaderVariantsData();
                         mStripCheckAccessLevel = AccessLevel.Global;
                         mStripCheckSelectedKeywordIndex = 0;
                         if (nextStripCheckShader != null)
@@ -477,8 +477,8 @@ namespace Soco.ShaderVariantsStripper
                         mStripCheckData.shaderType = (ShaderVariantsDataShaderType)Mathf.Clamp((int)mStripCheckData.shaderType,
                             (int)ShaderVariantsDataShaderType.Vertex, (int)ShaderVariantsDataShaderType.RayTracing + 1);
                         mStripCheckData.passType = (UnityEngine.Rendering.PassType) EditorGUILayout.EnumPopup("PassType", mStripCheckData.passType);
-                        UnityEngine.Rendering.ShaderKeyword[] keywords =
-                            mStripCheckData.shaderKeywordSet.GetShaderKeywords();
+                        string[] keywords =
+                            mStripCheckData.GetShaderKeywords();
                         
                         EditorGUILayout.LabelField($"Keyword,共{keywords.Length}个");
                         
@@ -505,9 +505,9 @@ namespace Soco.ShaderVariantsStripper
                                     ? new ShaderKeyword(selectedKeyword)
                                     : new ShaderKeyword(mStripCheckShader, selectedKeyword);
 
-                            if (GUILayout.Button("添加", GUILayout.Width(rightWidth * 0.3f)) && !mStripCheckData.shaderKeywordSet.IsEnabled(newKeyword))
+                            if (GUILayout.Button("添加", GUILayout.Width(rightWidth * 0.3f)) && !mStripCheckData.IsKeywordEnabled(newKeyword))
                             {
-                                mStripCheckData.shaderKeywordSet.Enable(newKeyword);
+                                mStripCheckData.EnableKeyword(newKeyword);
                             }
                         }
                         EditorGUILayout.EndHorizontal();
@@ -516,11 +516,9 @@ namespace Soco.ShaderVariantsStripper
                         int keywordCount = 0;
                         foreach (var keyword in keywords)
                         {
-                            string keywordName =
-                                UnityEngine.Rendering.ShaderKeyword.GetKeywordName(mStripCheckShader, keyword);
-                            if (GUILayout.Button(new GUIContent(keywordName, keywordName), GUILayout.Width(rightWidth * 0.2f)))
+                            if (GUILayout.Button(new GUIContent(keyword, keyword), GUILayout.Width(rightWidth * 0.2f)))
                             {
-                                mStripCheckData.shaderKeywordSet.Disable(keyword);
+                                mStripCheckData.DisableKeyword(keyword);
                             }
                             keywordCount++;
                             if (keywordCount % 4 == 0)

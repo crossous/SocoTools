@@ -34,8 +34,7 @@ namespace Soco.ShaderVariantsStripper
             int combinationValue = 0;
             foreach (string keyword in keywords)
             {
-                combinationValue += data.shaderKeywordSet.IsEnabled(new ShaderKeyword(keyword)) ||
-                                    data.shaderKeywordSet.IsEnabled(new ShaderKeyword(shader, keyword))
+                combinationValue += data.IsKeywordEnabled(keyword, shader)
                     ? 1
                     : 0;
             }

@@ -6,7 +6,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace Soco.ShaderVariantsStripper
 {
-    public class ShaderVariantsStripperConditionShaderName : ShaderVariantsStripperCondition
+    public class ShaderVariantsStripperConditionPassName : ShaderVariantsStripperCondition
     {
         public enum MatchMode
         {
@@ -17,7 +17,7 @@ namespace Soco.ShaderVariantsStripper
         }
 
         public MatchMode mode;
-        public string shaderName;
+        public string passName = "";
         public RegexOptions regexOptions;
         
         public bool Completion(Shader shader, ShaderVariantsData data)
@@ -25,13 +25,13 @@ namespace Soco.ShaderVariantsStripper
             switch (mode)
             {
                 case MatchMode.AllMatch:
-                    return shader.name == shaderName;
+                    return data.passName == passName;
                 case MatchMode.StartsWith:
-                    return shader.name.StartsWith(shaderName);
+                    return data.passName.StartsWith(passName);
                 case MatchMode.EndsWith:
-                    return shader.name.EndsWith(shaderName);
+                    return data.passName.EndsWith(passName);
                 case MatchMode.Regex:
-                    return Regex.IsMatch(shader.name, shaderName);
+                    return Regex.IsMatch(data.passName, passName, regexOptions);
             }
 
             return false;
@@ -39,17 +39,17 @@ namespace Soco.ShaderVariantsStripper
 
         public bool EqualTo(ShaderVariantsStripperCondition other, ShaderVariantsData variantData)
         {
-            return other.GetType() == typeof(ShaderVariantsStripperConditionShaderName) &&
-                   (other as ShaderVariantsStripperConditionShaderName).mode == this.mode &&
-                   (other as ShaderVariantsStripperConditionShaderName).shaderName == this.shaderName &&
-                   (this.mode != MatchMode.Regex || (other as ShaderVariantsStripperConditionShaderName).regexOptions == this.regexOptions);
+            return other.GetType() == typeof(ShaderVariantsStripperConditionPassName) &&
+                   (other as ShaderVariantsStripperConditionPassName).mode == this.mode &&
+                   (other as ShaderVariantsStripperConditionPassName).passName == this.passName &&
+                   (this.mode != MatchMode.Regex || (other as ShaderVariantsStripperConditionPassName).regexOptions == this.regexOptions);
         }
         
 #if UNITY_EDITOR
         
         public string Overview()
         {
-            return $"当Shader名称或模式<{shaderName}>符合条件<{mode}>时";
+            return $"当Pass名称或模式<{passName}>符合条件<{mode}>时";
         }
 
         public void OnGUI(ShaderVariantsStripperConditionOnGUIContext context)
@@ -58,18 +58,18 @@ namespace Soco.ShaderVariantsStripper
 
             mode = (MatchMode)EditorGUILayout.EnumPopup("MatchMode", mode);
 
-            string label = mode == MatchMode.Regex ? "pattern" : "shader name";
-            shaderName = EditorGUILayout.TextField(label, shaderName);
-            
+            string label = mode == MatchMode.Regex ? "pattern" : "pass name";
+            passName = EditorGUILayout.TextField(label, passName);
+
             if (mode == MatchMode.Regex)
                 regexOptions = (RegexOptions)EditorGUILayout.EnumFlagsField("Regex Options", regexOptions);
-
+            
             EditorGUILayout.EndVertical();
         }
 
         public string GetName()
         {
-            return "Shader名称匹配";
+            return "Pass名称匹配";
         }
 #endif
     }

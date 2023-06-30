@@ -413,6 +413,9 @@ namespace Soco.ShaderVariantsStripper
                             conditionList[i] = conditionPair;
                         }
 
+                        if (conditionPair.condition == null)
+                            conditionList.RemoveAt(i);
+
                         if (GUILayout.Button(conditionPair.condition.Overview(), GUILayout.Width(rightWidth - 3 * 50 - 25),
                                 GUILayout.Height(50)))
                         {
@@ -477,8 +480,9 @@ namespace Soco.ShaderVariantsStripper
                         mStripCheckData.shaderType = (ShaderVariantsDataShaderType)Mathf.Clamp((int)mStripCheckData.shaderType,
                             (int)ShaderVariantsDataShaderType.Vertex, (int)ShaderVariantsDataShaderType.RayTracing + 1);
                         mStripCheckData.passType = (UnityEngine.Rendering.PassType) EditorGUILayout.EnumPopup("PassType", mStripCheckData.passType);
-                        string[] keywords =
-                            mStripCheckData.GetShaderKeywords();
+                        mStripCheckData.passName = EditorGUILayout.TextField("PassName", mStripCheckData.passName);
+                        
+                        string[] keywords = mStripCheckData.GetShaderKeywords();
                         
                         EditorGUILayout.LabelField($"Keyword,共{keywords.Length}个");
                         

@@ -52,7 +52,8 @@ namespace Soco.ShaderVariantsStripper
         {
             return new ShaderVariantsData()
             {
-                inStripCallback = false
+                inStripCallback = false,
+                passName = ""
             };
         }
 

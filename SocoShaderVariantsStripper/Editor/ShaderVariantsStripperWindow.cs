@@ -254,7 +254,7 @@ namespace Soco.ShaderVariantsStripper
                     foreach (var kvp in mConfig.mShaderConditions)
                     {
                         Shader shader = kvp.Key;
-                        if (shader.name.IndexOf(mFilterShaderName, StringComparison.OrdinalIgnoreCase) > 0)
+                        if (shader.name.IndexOf(mFilterShaderName, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             mFilterShaders.Add(kvp.Key, kvp.Value);
                         }

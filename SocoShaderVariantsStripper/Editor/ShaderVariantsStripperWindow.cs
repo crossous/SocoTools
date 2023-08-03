@@ -290,7 +290,7 @@ namespace Soco.ShaderVariantsStripper
                     }
 
                     GUI.color = item.applyGlobalConfig ? Color.green : Color.red;
-                    if (GUILayout.Button(new GUIContent("G", "应用全局设置"), GUILayout.MinWidth(45)))
+                    if (GUILayout.Button(new GUIContent("G", "应用当前文件全局设置"), GUILayout.MinWidth(45)))
                     {
                         item.applyGlobalConfig =
                             !item.applyGlobalConfig;

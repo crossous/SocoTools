@@ -82,6 +82,10 @@ namespace Soco.ShaderVariantsCollection
             public bool toggleValue;
         }
 
+        [SerializeField] private string mVariantFilterString = "";
+        [SerializeField] private string[] mVariantFilterArray = null;
+        private bool mVariantFilterAllMatch = false;
+
         [SerializeField]
         private List<CachePassData> mPassVariantCacheData = new List<CachePassData>();
 
@@ -535,6 +539,24 @@ namespace Soco.ShaderVariantsCollection
                         OpenAddVariantWindow();
                     }
                     
+                    EditorGUILayout.BeginHorizontal();
+                    string newVariantFilterString =
+                        EditorGUILayout.TextField(new GUIContent("keyword过滤", "用空格分割多个keyword"), mVariantFilterString);
+                    if (newVariantFilterString != mVariantFilterString)
+                    {
+                        mVariantFilterString = newVariantFilterString;
+                        if (newVariantFilterString == "<no keywords>")
+                            mVariantFilterArray = new string[0];
+                        else if (string.IsNullOrWhiteSpace(newVariantFilterString))
+                            mVariantFilterArray = null;
+                        else
+                            mVariantFilterArray = newVariantFilterString.Split(new char[]{' '}, StringSplitOptions.RemoveEmptyEntries);
+                    }
+
+                    if (mVariantFilterString != "<no keywords>")
+                        mVariantFilterAllMatch = EditorGUILayout.Toggle("完全匹配", mVariantFilterAllMatch);
+                    EditorGUILayout.EndHorizontal();
+                    
                     //if (mPassKeywordsMap.Count == 0)
                     if (mPassVariantCacheData.Count == 0)
                     {
@@ -572,6 +594,27 @@ namespace Soco.ShaderVariantsCollection
                         {
                             foreach (SerializableShaderVariant variant in cacheData.variants)
                             {
+                                //过滤功能
+                                if (mVariantFilterArray != null)
+                                {
+                                    bool needSkipDisplay = false;
+                                    foreach (var needVariant in mVariantFilterArray)
+                                    {
+                                        if (!variant.keywords.Contains(needVariant))
+                                        {
+                                            needSkipDisplay = true;
+                                            break;
+                                        }
+                                    }
+
+                                    needSkipDisplay |= (mVariantFilterAllMatch &&
+                                                        variant.keywords.Length != mVariantFilterArray.Length);
+                                    needSkipDisplay |= mVariantFilterArray.Length == 0 && variant.keywords.Length != 0;//no keywords
+                                    
+                                    if (needSkipDisplay)
+                                        continue;
+                                }
+
                                 EditorGUILayout.BeginHorizontal(GUILayout.Width(rightWidth));
                                 if(variant.keywords.Length == 0)
                                     EditorGUILayout.LabelField("<no keywords>", GUILayout.Width(keyowrdWidth));

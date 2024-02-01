@@ -45,8 +45,7 @@ namespace Soco.ShaderVariantsStripper
     
             for (var i = 0; i != Mathf.Min(_keys.Count, _values.Count); i++)
             {
-                if(_keys[i] != null)
-                    Add(_keys[i], _values[i]);
+                Add(_keys[i], _values[i]);
             }
         }
     }
@@ -55,6 +54,7 @@ namespace Soco.ShaderVariantsStripper
     public class ShaderVariantsStripperConfig : ScriptableObject
     {
         public bool mEnable = true;
+        public bool mIsWhiteList = false;
         
         public List<ConditionPair> mGlobalConditions = new List<ConditionPair>();
         public ShaderConditionsDictionary mShaderConditions = new ShaderConditionsDictionary();

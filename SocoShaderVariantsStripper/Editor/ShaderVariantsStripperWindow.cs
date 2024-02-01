@@ -107,6 +107,7 @@ namespace Soco.ShaderVariantsStripper
             
             if (mConfig != null)
             {
+                EditorGUILayout.BeginHorizontal();
                 Color oriColor = GUI.color;
                 GUI.color = mConfig.mEnable ? Color.green : Color.red;
                 if (GUILayout.Button(new GUIContent((mConfig.mEnable ? "已启用" : "已禁用"), "启用或禁用当前配置文件")))
@@ -114,7 +115,13 @@ namespace Soco.ShaderVariantsStripper
                     mConfig.mEnable = !mConfig.mEnable;
                 }
 
+                GUI.color = mConfig.mIsWhiteList ? Color.white : Color.grey;
+                if (GUILayout.Button(new GUIContent((mConfig.mIsWhiteList ? "白名单" : "剔除列表"), "当前配置文件是否为白名单")))
+                {
+                    mConfig.mIsWhiteList = !mConfig.mIsWhiteList;
+                }
                 GUI.color = oriColor;
+                EditorGUILayout.EndHorizontal();
                 
                 EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button("序列化Config为Json", GUILayout.Width(cLeftWidth * 0.5f)))
@@ -180,9 +187,20 @@ namespace Soco.ShaderVariantsStripper
             EditorGUILayout.LabelField("Global Setting View");
             if (mConfig != null)
             {
-                if (GUILayout.Button(new GUIContent("全局设置" + 
-                                                    (mConfig.mGlobalConditions.Count == 0 ? " " : $"({mConfig.mGlobalConditions.Count}条)") +
-                            ( + mConfig.mShaderConditions.Count == 0 ? "(应用于全体Shader)" : "(应用于ShaderView中Shader)"), "浏览全局设置"), GUILayout.ExpandHeight(true),
+                string globalText = "全局设置" + 
+                                    (mConfig.mGlobalConditions.Count == 0 ? " " : $"({mConfig.mGlobalConditions.Count}条)");
+
+                string applyText = "";
+                if (mConfig.mIsWhiteList)
+                {
+                    applyText = (mConfig.mShaderConditions.Count == 0 ? "(当前无效)" : "(应用于ShaderView中Shader)");
+                }
+                else
+                {
+                    applyText = (mConfig.mShaderConditions.Count == 0 ? "(应用于全体Shader)" : "(应用于ShaderView中Shader)");
+                }
+                    
+                if (GUILayout.Button(new GUIContent(globalText + applyText, "浏览全局设置"), GUILayout.ExpandHeight(true),
                         GUILayout.ExpandWidth(true)))
                 {
                     mCurrentContentState = ContentState.GlobalSetting;
@@ -254,7 +272,7 @@ namespace Soco.ShaderVariantsStripper
                     foreach (var kvp in mConfig.mShaderConditions)
                     {
                         Shader shader = kvp.Key;
-                        if (shader.name.IndexOf(mFilterShaderName, StringComparison.OrdinalIgnoreCase) >= 0)
+                        if (shader.name.IndexOf(mFilterShaderName, StringComparison.OrdinalIgnoreCase) > 0)
                         {
                             mFilterShaders.Add(kvp.Key, kvp.Value);
                         }
@@ -290,7 +308,7 @@ namespace Soco.ShaderVariantsStripper
                     }
 
                     GUI.color = item.applyGlobalConfig ? Color.green : Color.red;
-                    if (GUILayout.Button(new GUIContent("G", "应用当前文件全局设置"), GUILayout.MinWidth(45)))
+                    if (GUILayout.Button(new GUIContent("G", "应用全局设置"), GUILayout.MinWidth(45)))
                     {
                         item.applyGlobalConfig =
                             !item.applyGlobalConfig;
@@ -391,26 +409,31 @@ namespace Soco.ShaderVariantsStripper
                         // uint priority = conditionList[i].priority;
 
                         EditorGUILayout.BeginHorizontal(mItemStyle, GUILayout.Width(rightWidth), GUILayout.Height(50));
-                    
-                        Color oriGUIColor = GUI.color;
-                        if (conditionPair.strip)
-                            GUI.color = Color.red;
-                        else
-                            GUI.color = Color.green;
-                        if (GUILayout.Button((conditionPair.strip ? "剔除" : "保留"), GUILayout.Width(50),
-                                GUILayout.Height(50)))
+
+                        if (!mConfig.mIsWhiteList)
                         {
-                            //conditionList[i] = new ConditionPair(){condition = condition, strip = !strip, priority = priority};
-                            conditionPair.strip = !conditionPair.strip;
-                            conditionList[i] = conditionPair;
-                        }
-                        GUI.color = oriGUIColor;
-                        
-                        uint newPriority = (uint)Mathf.Max(0, EditorGUILayout.IntField((int)conditionPair.priority, GUILayout.Width(50), GUILayout.Height(50)));
-                        if (newPriority != conditionPair.priority)
-                        {
-                            conditionPair.priority = newPriority;
-                            conditionList[i] = conditionPair;
+                            Color oriGUIColor = GUI.color;
+                            if (conditionPair.strip)
+                                GUI.color = Color.red;
+                            else
+                                GUI.color = Color.green;
+                            if (GUILayout.Button((conditionPair.strip ? "剔除" : "保留"), GUILayout.Width(50),
+                                    GUILayout.Height(50)))
+                            {
+                                //conditionList[i] = new ConditionPair(){condition = condition, strip = !strip, priority = priority};
+                                conditionPair.strip = !conditionPair.strip;
+                                conditionList[i] = conditionPair;
+                            }
+                            GUI.color = oriGUIColor;
+
+                            uint newPriority = (uint)Mathf.Max(0,
+                                EditorGUILayout.IntField((int)conditionPair.priority, GUILayout.Width(50),
+                                    GUILayout.Height(50)));
+                            if (newPriority != conditionPair.priority)
+                            {
+                                conditionPair.priority = newPriority;
+                                conditionList[i] = conditionPair;
+                            }
                         }
 
                         if (conditionPair.condition == null)
@@ -550,7 +573,10 @@ namespace Soco.ShaderVariantsStripper
                             
                             bool strip = mStripCheckConditionList.Any(conditionPair_fromConfig =>
                                 conditionPair_fromConfig.conditionPair.strip);
-                            ShowNotification(new GUIContent("检测结果为：" + (strip ? "剔除" : "保留")));
+                            bool hasWhiteList = mStripCheckConditionList.Any(conditionPair_fromConfig =>
+                                conditionPair_fromConfig.config.mIsWhiteList);
+                            string res = hasWhiteList ? "白名单" : (strip ? "剔除" : "保留");
+                            ShowNotification(new GUIContent("检测结果为：" + res));
                             mStripCheckConditionListScrollViewPos = Vector2.zero;
                         }
 
@@ -565,14 +591,28 @@ namespace Soco.ShaderVariantsStripper
                             bool strip = mStripCheckConditionList.Any(conditionPair_fromConfig =>
                                 conditionPair_fromConfig.conditionPair.strip);
                             
-                            EditorGUILayout.LabelField("检测结果为：" + (strip ? "剔除" : "保留"));
+                            bool hasWhiteList = mStripCheckConditionList.Any(conditionPair_fromConfig =>
+                                conditionPair_fromConfig.config.mIsWhiteList);
+                            
+                            string res = hasWhiteList ? "白名单" : (strip ? "剔除" : "保留");
+                            EditorGUILayout.LabelField("检测结果为：" + res);
                             
                             mStripCheckConditionListScrollViewPos =
                                 EditorGUILayout.BeginScrollView(mStripCheckConditionListScrollViewPos);
 
                             foreach (var conditionPair_fromConfig in mStripCheckConditionList)
                             {
-                                if (GUILayout.Button(conditionPair_fromConfig.config.name + (strip ? " 剔除" : " 保留") + $" 优先级:{conditionPair_fromConfig.conditionPair.priority} 条件:{conditionPair_fromConfig.conditionPair.condition.Overview()}"))
+                                string conditionRes = "";
+                                if (conditionPair_fromConfig.config.mIsWhiteList)
+                                {
+                                    conditionRes = " 白名单";
+                                }
+                                else
+                                {
+                                    conditionRes = (conditionPair_fromConfig.conditionPair.strip ? " 剔除" : " 保留") + $" 优先级:{conditionPair_fromConfig.conditionPair.priority}";
+                                }
+                                
+                                if (GUILayout.Button(conditionPair_fromConfig.config.name + conditionRes + $" 条件:{conditionPair_fromConfig.conditionPair.condition.Overview()}"))
                                 {
                                     Selection.activeObject = conditionPair_fromConfig.config;
                                     EditorGUIUtility.PingObject(conditionPair_fromConfig.config);

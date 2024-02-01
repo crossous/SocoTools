@@ -47,14 +47,21 @@ namespace Soco.ShaderVariantsStripper
 
                 StripVariant(shader, snippet, data[i], sConfigs, mConditionList);
 
+                bool isStrip = false;
                 foreach (var conditionPair_fromConfig in mConditionList)
                 {
-                    if (conditionPair_fromConfig.conditionPair.strip)
+                    isStrip |= conditionPair_fromConfig.conditionPair.strip;
+                    if (conditionPair_fromConfig.config.mIsWhiteList)
                     {
-                        data.RemoveAt(i);
-                        stripCount++;
+                        isStrip = false;
                         break;
                     }
+                }
+                
+                if (isStrip)
+                {
+                    data.RemoveAt(i);
+                    stripCount++;
                 }
             }
 
@@ -75,7 +82,9 @@ namespace Soco.ShaderVariantsStripper
             StripVariant(shader, snippet, data, sConfigs, sConditionList);
 
             return sConditionList.Any(conditionPair_fromConfig =>
-                conditionPair_fromConfig.conditionPair.strip);
+                       conditionPair_fromConfig.conditionPair.strip)
+                   && sConditionList.All(conditionPair_fromConfig =>
+                       !conditionPair_fromConfig.config.mIsWhiteList);
         }
         
         public static void StripVariant(Shader shader, ShaderSnippetData snippet, ShaderCompilerData data,
@@ -113,7 +122,7 @@ namespace Soco.ShaderVariantsStripper
                 if (config.mShaderConditions.TryGetValue(shader, out ShaderVariantsItem item))
                     applyGlobalConfig = item.applyGlobalConfig;
                 // 如果Shader View中没有Shader，则Global Setting应用于全体Shader
-                else if (config.mShaderConditions.Count == 0)
+                else if (config.mShaderConditions.Count == 0 && !config.mIsWhiteList)
                     applyGlobalConfig = true;
                 else
                     applyGlobalConfig = false;
@@ -125,16 +134,23 @@ namespace Soco.ShaderVariantsStripper
                     {
                         if (pair.condition.Completion(shader, variantData))
                         {
-                            //如果有相同的条件，
-                            if (FindConditionEqual(pair, out int findIndex) != -1)
+                            if (!config.mIsWhiteList)
                             {
-                                //且优先级更高
-                                if(pair.priority > conditionList[findIndex].conditionPair.priority)
-                                    conditionList[findIndex] = (pair, config);
-                                //优先级更低则直接丢弃
+                                //如果有相同的条件，
+                                if (FindConditionEqual(pair, out int findIndex) != -1)
+                                {
+                                    //且优先级更高
+                                    if(pair.priority > conditionList[findIndex].conditionPair.priority)
+                                        conditionList[findIndex] = (pair, config);
+                                    //优先级更低则直接丢弃
+                                }
+                                else//否则加入列表
+                                    conditionList.Add((pair, config));
                             }
-                            else//否则加入列表
+                            else//白名单变体无需判断优先级和相等条件
+                            {
                                 conditionList.Add((pair, config));
+                            }
                         }
                     }
                 }
@@ -145,13 +161,20 @@ namespace Soco.ShaderVariantsStripper
                     {
                         if (pair.condition.Completion(shader, variantData))
                         {
-                            if (FindConditionEqual(pair, out int findIndex) != -1)
+                            if (!config.mIsWhiteList)
                             {
-                                if (pair.priority > conditionList[findIndex].conditionPair.priority)
-                                    conditionList[findIndex] = (pair, config);
+                                if (FindConditionEqual(pair, out int findIndex) != -1)
+                                {
+                                    if (pair.priority > conditionList[findIndex].conditionPair.priority)
+                                        conditionList[findIndex] = (pair, config);
+                                }
+                                else
+                                    conditionList.Add((pair, config));
                             }
                             else
+                            {
                                 conditionList.Add((pair, config));
+                            }
                         }
                     }
                 }

@@ -293,6 +293,47 @@ namespace Soco.ShaderVariantsCollection
             
             ReadFromFile();
         }
+        
+        public int Intersection(ShaderVariantCollection otherFile)
+        {
+            if (otherFile == null)
+                return -1;
+
+            ShaderVariantCollectionMapper otherMapper = new ShaderVariantCollectionMapper(otherFile);
+            List<ShaderVariantCollection.ShaderVariant> excludeVariants = new List<ShaderVariantCollection.ShaderVariant>();
+            foreach (KeyValuePair<Shader, List<SerializableShaderVariant>> pair in mMapper)
+            {
+                foreach (SerializableShaderVariant serializableVariant in pair.Value)
+                {
+                    ShaderVariantCollection.ShaderVariant variant = serializableVariant.Deserialize();
+                    if (!otherMapper.HasVariant(variant))
+                    {
+                        excludeVariants.Add(variant);
+                    }
+                }
+            }
+
+            foreach (ShaderVariantCollection.ShaderVariant variant in excludeVariants)
+            {
+                RemoveVariant(variant);
+            }
+
+            List<Shader> excludeShaders = new List<Shader>();
+            foreach (KeyValuePair<Shader, List<SerializableShaderVariant>> pair in mMapper)
+            {
+                if (pair.Value.Count() == 0)
+                    excludeShaders.Add(pair.Key);
+            }
+            
+            foreach (Shader shader in excludeShaders)
+            {
+                RemoveShader(shader);
+            }
+
+            ReadFromFile();
+
+            return excludeVariants.Count();
+        }
 
         public void Refresh() => ReadFromFile();
 

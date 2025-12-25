@@ -35,7 +35,13 @@ namespace Soco.ShaderVariantsStripper
         
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
+            if (data == null || data.Count <= 0)
+                return;
+                
             LoadConfigs();
+
+            if (sConfigs == null)
+                return;
 
             ShaderCompilerData workaround = data[0];
 
